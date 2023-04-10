@@ -9,24 +9,25 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator"
-import { defaultAdminOrdersFields, defaultAdminOrdersRelations } from "."
 import { ClaimReason, ClaimType } from "../../../../models"
 
 import { Type } from "class-transformer"
 import { MedusaError } from "medusa-core-utils"
 import { EntityManager } from "typeorm"
 import { ClaimTypeValue } from "../../../../types/claim"
-import { AddressPayload } from "../../../../types/common"
-import { validator } from "../../../../utils/validator"
+import { AddressPayload, FindParams } from "../../../../types/common"
+import { cleanResponseData } from "../../../../utils/clean-response-data"
 
 /**
- * @oas [post] /order/{id}/claims
+ * @oas [post] /admin/orders/{id}/claims
  * operationId: "PostOrdersOrderClaims"
  * summary: "Create a Claim"
  * description: "Creates a Claim."
  * x-authenticated: true
  * parameters:
  *   - (path) id=* {string} The ID of the Order.
+ *   - (query) expand {string} Comma separated list of relations to include in the result.
+ *   - (query) fields {string} Comma separated list of fields to include in the result.
  * requestBody:
  *   content:
  *     application/json:
@@ -34,6 +35,7 @@ import { validator } from "../../../../utils/validator"
  *         $ref: "#/components/schemas/AdminPostOrdersOrderClaimsReq"
  * x-codegen:
  *   method: createClaim
+ *   params: AdminPostOrdersOrderClaimsParams
  * x-codeSamples:
  *   - lang: JavaScript
  *     label: JS Client
@@ -72,7 +74,7 @@ import { validator } from "../../../../utils/validator"
  *   - api_token: []
  *   - cookie_auth: []
  * tags:
- *   - Claim
+ *   - Orders
  * responses:
  *   200:
  *     description: OK
@@ -97,7 +99,7 @@ import { validator } from "../../../../utils/validator"
 export default async (req, res) => {
   const { id } = req.params
 
-  const value = await validator(AdminPostOrdersOrderClaimsReq, req.body)
+  const value = req.validatedBody
 
   const idempotencyKeyService = req.scope.resolve("idempotencyKeyService")
   const manager: EntityManager = req.scope.resolve("manager")
@@ -247,14 +249,15 @@ export default async (req, res) => {
 
                 order = await orderService
                   .withTransaction(manager)
-                  .retrieve(id, {
-                    select: defaultAdminOrdersFields,
-                    relations: defaultAdminOrdersRelations,
+                  .retrieveWithTotals(id, req.retrieveConfig, {
+                    includes: req.includes,
                   })
 
                 return {
                   response_code: 200,
-                  response_body: { order },
+                  response_body: {
+                    order,
+                  },
                 }
               })
           })
@@ -286,6 +289,13 @@ export default async (req, res) => {
 
   if (err) {
     throw err
+  }
+
+  if (idempotencyKey.response_body.order) {
+    idempotencyKey.response_body.order = cleanResponseData(
+      idempotencyKey.response_body.order,
+      []
+    )
   }
 
   res.status(idempotencyKey.response_code).json(idempotencyKey.response_body)
@@ -383,9 +393,8 @@ export default async (req, res) => {
  *             description: An optional set of key-value pairs to hold additional information.
  *             type: object
  *   shipping_address:
- *      type: object
  *      description: "An optional shipping address to send the claim to. Defaults to the parent order's shipping address"
- *      $ref: "#/components/schemas/Address"
+ *      $ref: "#/components/schemas/AddressPayload"
  *   refund_amount:
  *      description: The amount to refund the Customer when the Claim type is `refund`.
  *      type: integer
@@ -437,6 +446,10 @@ export class AdminPostOrdersOrderClaimsReq {
   @IsBoolean()
   @IsOptional()
   no_notification?: boolean
+
+  @IsOptional()
+  @IsString()
+  return_location_id?: string
 
   @IsObject()
   @IsOptional()
@@ -508,3 +521,5 @@ class AdditionalItem {
   @IsNotEmpty()
   quantity: number
 }
+
+export class AdminPostOrdersOrderClaimsParams extends FindParams {}

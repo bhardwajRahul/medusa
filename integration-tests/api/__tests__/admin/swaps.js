@@ -349,7 +349,7 @@ describe("/admin/swaps", () => {
           {}
         )
 
-        // ********* VALIDATE *********
+        // ********* VALIDATE  *********
         expect(swap.data.swap.difference_due).toBe(swapCart.data.cart.total)
       })
     })

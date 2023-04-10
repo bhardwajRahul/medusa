@@ -11,15 +11,8 @@ import {
   OneToMany,
   OneToOne,
 } from "typeorm"
-import {
-  DbAwareColumn,
-  resolveDbGenerationStrategy,
-  resolveDbType,
-} from "../utils/db-aware-column"
-import {
-  FeatureFlagColumn,
-  FeatureFlagDecorators,
-} from "../utils/feature-flag-decorators"
+import { DbAwareColumn, resolveDbGenerationStrategy, resolveDbType, } from "../utils/db-aware-column"
+import { FeatureFlagColumn, FeatureFlagDecorators, } from "../utils/feature-flag-decorators"
 
 import { BaseEntity } from "../interfaces/models/base-entity"
 import { generateEntityId } from "../utils/generate-entity-id"
@@ -248,6 +241,7 @@ export class Order extends BaseEntity {
   // Total fields
   shipping_total: number
   discount_total: number
+  raw_discount_total: number
   tax_total: number | null
   refunded_total: number
   total: number
@@ -256,6 +250,8 @@ export class Order extends BaseEntity {
   refundable_amount: number
   gift_card_total: number
   gift_card_tax_total: number
+
+  returnable_items?: LineItem[]
 
   @BeforeInsert()
   private async beforeInsert(): Promise<void> {
@@ -511,8 +507,12 @@ export class Order extends BaseEntity {
  *     type: integer
  *     description: The total of shipping
  *     example: 1000
- *   discount_total:
+ *   raw_discount_total:
  *     description: The total of discount
+ *     type: integer
+ *     example: 800
+ *   discount_total:
+ *     description: The total of discount rounded
  *     type: integer
  *     example: 800
  *   tax_total:
@@ -547,6 +547,11 @@ export class Order extends BaseEntity {
  *     description: The total of gift cards with taxes
  *     type: integer
  *     example: 0
+ *   returnable_items:
+ *     description: The items that are returnable as part of the order, order swaps or order claims
+ *     type: array
+ *     items:
+ *       $ref: "#/components/schemas/LineItem"
  *   created_at:
  *     description: The date with timezone at which the resource was created.
  *     type: string

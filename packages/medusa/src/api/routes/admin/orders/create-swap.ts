@@ -16,21 +16,23 @@ import {
   Min,
   ValidateNested,
 } from "class-validator"
-import { defaultAdminOrdersFields, defaultAdminOrdersRelations } from "."
 
 import { EntityManager } from "typeorm"
 import { MedusaError } from "medusa-core-utils"
 import { Type } from "class-transformer"
-import { validator } from "../../../../utils/validator"
+import { FindParams } from "../../../../types/common"
+import { cleanResponseData } from "../../../../utils/clean-response-data"
 
 /**
- * @oas [post] /order/{id}/swaps
+ * @oas [post] /admin/orders/{id}/swaps
  * operationId: "PostOrdersOrderSwaps"
  * summary: "Create a Swap"
  * description: "Creates a Swap. Swaps are used to handle Return of previously purchased goods and Fulfillment of replacements simultaneously."
  * x-authenticated: true
  * parameters:
  *   - (path) id=* {string} The ID of the Order.
+ *   - (query) expand {string} (Comma separated) Which fields should be expanded the order of the result.
+ *   - (query) fields {string} (Comma separated) Which fields should be included the order of the result.
  * requestBody:
  *   content:
  *     application/json:
@@ -38,6 +40,7 @@ import { validator } from "../../../../utils/validator"
  *         $ref: "#/components/schemas/AdminPostOrdersOrderSwapsReq"
  * x-codegen:
  *   method: createSwap
+ *   queryParams: AdminPostOrdersOrderSwapsParams
  * x-codeSamples:
  *   - lang: JavaScript
  *     label: JS Client
@@ -74,7 +77,7 @@ import { validator } from "../../../../utils/validator"
  *   - api_token: []
  *   - cookie_auth: []
  * tags:
- *   - Swap
+ *   - Orders
  * responses:
  *   200:
  *     description: OK
@@ -98,7 +101,7 @@ import { validator } from "../../../../utils/validator"
 export default async (req, res) => {
   const { id } = req.params
 
-  const validated = await validator(AdminPostOrdersOrderSwapsReq, req.body)
+  const validated = req.validatedBody
 
   const idempotencyKeyService: IdempotencyKeyService = req.scope.resolve(
     "idempotencyKeyService"
@@ -142,9 +145,11 @@ export default async (req, res) => {
                     relations: [
                       "cart",
                       "items",
+                      "items.variant",
                       "items.tax_lines",
                       "swaps",
                       "swaps.additional_items",
+                      "swaps.additional_items.variant",
                       "swaps.additional_items.tax_lines",
                     ],
                   })
@@ -160,6 +165,7 @@ export default async (req, res) => {
                       idempotency_key: idempotencyKey.idempotency_key,
                       no_notification: validated.no_notification,
                       allow_backorder: validated.allow_backorder,
+                      location_id: validated.return_location_id,
                     }
                   )
 
@@ -208,14 +214,15 @@ export default async (req, res) => {
 
                 const order = await orderService
                   .withTransaction(transactionManager)
-                  .retrieve(id, {
-                    select: defaultAdminOrdersFields,
-                    relations: defaultAdminOrdersRelations,
+                  .retrieveWithTotals(id, req.retrieveConfig, {
+                    includes: req.includes,
                   })
 
                 return {
                   response_code: 200,
-                  response_body: { order },
+                  response_body: {
+                    order: cleanResponseData(order, []),
+                  },
                 }
               })
           })
@@ -358,6 +365,10 @@ export class AdminPostOrdersOrderSwapsReq {
   @IsOptional()
   no_notification?: boolean
 
+  @IsOptional()
+  @IsString()
+  return_location_id?: string
+
   @IsBoolean()
   @IsOptional()
   allow_backorder?: boolean = true
@@ -411,3 +422,5 @@ class AdditionalItem {
   @IsNotEmpty()
   quantity: number
 }
+
+export class AdminPostOrdersOrderSwapsParams extends FindParams {}

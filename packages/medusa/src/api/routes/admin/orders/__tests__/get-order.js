@@ -1,7 +1,10 @@
 import { IdMap } from "medusa-test-utils"
 import { request } from "../../../../../helpers/test-request"
 import { OrderServiceMock } from "../../../../../services/__mocks__/order"
-import { defaultAdminOrdersFields, defaultAdminOrdersRelations } from "../index"
+import {
+  defaultAdminOrdersFields,
+  defaultAdminOrdersRelations,
+} from "../../../../../types/orders"
 
 describe("GET /admin/orders", () => {
   describe("successfully gets an order", () => {
@@ -48,6 +51,9 @@ describe("GET /admin/orders", () => {
           ),
           // TODO [MEDUSA_FF_SALES_CHANNELS]: Remove when sales channel flag is removed entirely
           relations: [...defaultAdminOrdersRelations, "sales_channel"],
+        },
+        {
+          includes: undefined,
         }
       )
     })

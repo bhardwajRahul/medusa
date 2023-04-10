@@ -267,8 +267,12 @@ properties:
     type: integer
     description: The total of shipping
     example: 1000
-  discount_total:
+  raw_discount_total:
     description: The total of discount
+    type: integer
+    example: 800
+  discount_total:
+    description: The total of discount rounded
     type: integer
     example: 800
   tax_total:
@@ -303,6 +307,13 @@ properties:
     description: The total of gift cards with taxes
     type: integer
     example: 0
+  returnable_items:
+    description: >-
+      The items that are returnable as part of the order, order swaps or order
+      claims
+    type: array
+    items:
+      $ref: ./LineItem.yaml
   created_at:
     description: The date with timezone at which the resource was created.
     type: string

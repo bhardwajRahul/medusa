@@ -8,22 +8,23 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator"
-import { defaultAdminOrdersFields, defaultAdminOrdersRelations } from "."
 
-import { AddressPayload } from "../../../../types/common"
+import { AddressPayload, FindParams } from "../../../../types/common"
 import { EntityManager } from "typeorm"
 import { OrderService } from "../../../../services"
 import { Type } from "class-transformer"
-import { validator } from "../../../../utils/validator"
+import { cleanResponseData } from "../../../../utils/clean-response-data"
 
 /**
- * @oas [post] /orders/{id}
+ * @oas [post] /admin/orders/{id}
  * operationId: "PostOrdersOrder"
  * summary: "Update an Order"
  * description: "Updates and order"
  * x-authenticated: true
  * parameters:
  *   - (path) id=* {string} The ID of the Order.
+ *   - (query) expand {string} Comma separated list of relations to include in the result.
+ *   - (query) fields {string} Comma separated list of fields to include in the result.
  * requestBody:
  *   content:
  *     application/json:
@@ -31,6 +32,7 @@ import { validator } from "../../../../utils/validator"
  *         $ref: "#/components/schemas/AdminPostOrdersOrderReq"
  * x-codegen:
  *   method: update
+ *   params: AdminPostOrdersOrderParams
  * x-codeSamples:
  *   - lang: JavaScript
  *     label: JS Client
@@ -57,7 +59,7 @@ import { validator } from "../../../../utils/validator"
  *   - api_token: []
  *   - cookie_auth: []
  * tags:
- *   - Order
+ *   - Orders
  * responses:
  *   200:
  *     description: OK
@@ -82,23 +84,20 @@ import { validator } from "../../../../utils/validator"
 export default async (req, res) => {
   const { id } = req.params
 
-  const value = await validator(AdminPostOrdersOrderReq, req.body)
-
   const orderService: OrderService = req.scope.resolve("orderService")
 
   const manager: EntityManager = req.scope.resolve("manager")
   await manager.transaction(async (transactionManager) => {
     return await orderService
       .withTransaction(transactionManager)
-      .update(id, value)
+      .update(id, req.validatedBody)
   })
 
-  const order = await orderService.retrieve(id, {
-    select: defaultAdminOrdersFields,
-    relations: defaultAdminOrdersRelations,
+  const order = await orderService.retrieveWithTotals(id, req.retrieveConfig, {
+    includes: req.includes,
   })
 
-  res.status(200).json({ order })
+  res.status(200).json({ order: cleanResponseData(order, []) })
 }
 
 /**
@@ -110,12 +109,10 @@ export default async (req, res) => {
  *     type: string
  *   billing_address:
  *     description: Billing address
- *     anyOf:
- *       - $ref: "#/components/schemas/AddressFields"
+ *     $ref: "#/components/schemas/AddressPayload"
  *   shipping_address:
  *     description: Shipping address
- *     anyOf:
- *       - $ref: "#/components/schemas/AddressFields"
+ *     $ref: "#/components/schemas/AddressPayload"
  *   items:
  *     description: The Line Items for the order
  *     type: array
@@ -244,3 +241,5 @@ class ShippingMethod {
   @IsOptional()
   items?: Record<string, unknown>[]
 }
+
+export class AdminPostOrdersOrderParams extends FindParams {}
