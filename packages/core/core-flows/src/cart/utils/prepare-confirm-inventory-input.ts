@@ -67,14 +67,16 @@ export const prepareConfirmInventoryInput = (data: {
         hasSalesChannelStockLocation = true
       }
 
-      if (stock_locations) {
+      if (stock_locations && sales_channels?.id === salesChannelId) {
         stockLocationIds.add(stock_locations.id)
       }
 
       if (inventory_items) {
         const inventoryItemId = inventory_items.inventory_item_id
-        if (!productVariantInventoryItems.has(inventoryItemId)) {
-          productVariantInventoryItems.set(inventoryItemId, {
+        const mapKey = `${inventoryItemId}-${inventory_items.variant_id}`
+
+        if (!productVariantInventoryItems.has(mapKey)) {
+          productVariantInventoryItems.set(mapKey, {
             variant_id: inventory_items.variant_id,
             inventory_item_id: inventoryItemId,
             required_quantity: inventory_items.required_quantity,

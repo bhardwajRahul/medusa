@@ -48,6 +48,11 @@ export const navDropdownItems: NavigationItem[] = [
         link: "/resources/recipes",
       },
       {
+        type: "link",
+        title: "Plugin Guides",
+        link: "/resources/plugins",
+      },
+      {
         type: "divider",
       },
       {
@@ -107,56 +112,58 @@ export const navDropdownItems: NavigationItem[] = [
     children: [
       {
         type: "link",
-        title: "API Routes",
-        link: "/learn/basics/api-routes",
-      },
-      {
-        type: "link",
         title: "Modules",
-        link: "/learn/basics/modules",
+        link: "/learn/fundamentals/modules",
       },
       {
         type: "link",
-        title: "Subscribers",
-        link: "/learn/basics/events-and-subscribers",
-      },
-      {
-        type: "link",
-        title: "Scheduled Jobs",
-        link: "/learn/basics/scheduled-jobs",
-      },
-      {
-        type: "link",
-        title: "Loaders",
-        link: "/learn/basics/loaders",
-      },
-      {
-        type: "link",
-        title: "Admin Customizations",
-        link: "/learn/basics/admin-customizations",
-      },
-      {
-        type: "divider",
-      },
-      {
-        type: "link",
-        title: "Links",
-        link: "/learn/advanced-development/module-links",
-      },
-      {
-        type: "link",
-        title: "Query",
-        link: "/learn/advanced-development/module-links/query",
-      },
-      {
-        type: "link",
-        title: "Data Models",
-        link: "/learn/advanced-development/data-models",
+        title: "API Routes",
+        link: "/learn/fundamentals/api-routes",
       },
       {
         type: "link",
         title: "Workflows",
-        link: "/learn/basics/workflows",
+        link: "/learn/fundamentals/workflows",
+      },
+      {
+        type: "link",
+        title: "Data Models",
+        link: "/learn/fundamentals/data-models",
+      },
+      {
+        type: "link",
+        title: "Subscribers",
+        link: "/learn/fundamentals/events-and-subscribers",
+      },
+      {
+        type: "link",
+        title: "Scheduled Jobs",
+        link: "/learn/fundamentals/scheduled-jobs",
+      },
+      {
+        type: "link",
+        title: "Loaders",
+        link: "/learn/fundamentals/modules/loaders",
+      },
+      {
+        type: "link",
+        title: "Admin Customizations",
+        link: "/learn/fundamentals/admin",
+      },
+      {
+        type: "link",
+        title: "Plugins",
+        link: "/learn/fundamentals/plugins",
+      },
+      {
+        type: "link",
+        title: "Links",
+        link: "/learn/fundamentals/module-links",
+      },
+      {
+        type: "link",
+        title: "Query",
+        link: "/learn/fundamentals/module-links/query",
       },
     ],
   },
@@ -179,12 +186,12 @@ export const navDropdownItems: NavigationItem[] = [
       },
       {
         type: "link",
-        title: "Workflows",
+        title: "Core Workflows",
         link: "/resources/medusa-workflows-reference",
       },
       {
         type: "link",
-        title: "Data Model API",
+        title: "Data Model Language",
         link: "/resources/references/data-model",
       },
       {

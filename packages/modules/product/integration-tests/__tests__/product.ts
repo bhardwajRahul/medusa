@@ -13,10 +13,10 @@ import {
   ProductDTO,
 } from "@medusajs/framework/types"
 import {
+  kebabCase,
   Module,
   Modules,
   ProductStatus,
-  kebabCase,
   toMikroORMEntity,
 } from "@medusajs/framework/utils"
 import { moduleIntegrationTestRunner } from "@medusajs/test-utils"
@@ -492,21 +492,18 @@ moduleIntegrationTestRunner<Service>({
                 name: "category 0",
                 handle: "category-0",
                 mpath: "category-0",
-                parent_category_id: null,
               },
               {
                 id: "category-1",
                 name: "category 1",
                 handle: "category-1",
                 mpath: "category-0.category-1",
-                parent_category_id: null,
               },
               {
                 id: "category-1-a",
                 name: "category 1 a",
                 handle: "category-1-a",
                 mpath: "category-0.category-1.category-1-a",
-                parent_category_id: null,
               },
             ])
           })
@@ -580,7 +577,7 @@ moduleIntegrationTestRunner<Service>({
           })
 
           it("should filter by collection relation and scope fields", async () => {
-            const products = await service.list(
+            const products = await moduleService.listProducts(
               {
                 id: workingProduct.id,
                 collection_id: workingCollection.id,
@@ -596,16 +593,13 @@ moduleIntegrationTestRunner<Service>({
               }
             )
 
-            const serialized = JSON.parse(JSON.stringify(products))
-
-            expect(serialized.length).toEqual(1)
-            expect(serialized).toEqual([
+            expect(products.length).toEqual(1)
+            expect(products).toEqual([
               {
                 id: workingProduct.id,
                 title: workingProduct.title,
                 handle: "product-1",
                 collection_id: workingCollection.id,
-                type_id: null,
                 collection: {
                   handle: "col-1",
                   id: workingCollection.id,
@@ -616,7 +610,7 @@ moduleIntegrationTestRunner<Service>({
           })
 
           it("should filter by collection when multiple collection ids are passed", async () => {
-            const products = await service.list(
+            const products = await moduleService.listProducts(
               {
                 collection_id: [workingCollection.id, workingCollectionTwo.id],
               },
@@ -631,15 +625,12 @@ moduleIntegrationTestRunner<Service>({
               }
             )
 
-            const serialized = JSON.parse(JSON.stringify(products))
-
-            expect(serialized.length).toEqual(2)
-            expect(serialized).toEqual([
+            expect(products.length).toEqual(2)
+            expect(products).toEqual([
               {
                 id: workingProduct.id,
                 title: workingProduct.title,
                 handle: "product-1",
-                type_id: null,
                 collection_id: workingCollection.id,
                 collection: {
                   handle: "col-1",
@@ -651,7 +642,6 @@ moduleIntegrationTestRunner<Service>({
                 id: workingProductTwo.id,
                 title: workingProductTwo.title,
                 handle: "product",
-                type_id: null,
                 collection_id: workingCollectionTwo.id,
                 collection: {
                   handle: "col-2",

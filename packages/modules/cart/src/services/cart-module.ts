@@ -5,6 +5,7 @@ import {
   DAL,
   FindConfig,
   ICartModuleService,
+  InferEntityType,
   InternalModuleDeclaration,
   ModulesSdkTypes,
 } from "@medusajs/framework/types"
@@ -76,14 +77,30 @@ export default class CartModuleService
   implements ICartModuleService
 {
   protected baseRepository_: DAL.RepositoryService
-  protected cartService_: ModulesSdkTypes.IMedusaInternalService<Cart>
-  protected addressService_: ModulesSdkTypes.IMedusaInternalService<Address>
-  protected lineItemService_: ModulesSdkTypes.IMedusaInternalService<LineItem>
-  protected shippingMethodAdjustmentService_: ModulesSdkTypes.IMedusaInternalService<ShippingMethodAdjustment>
-  protected shippingMethodService_: ModulesSdkTypes.IMedusaInternalService<ShippingMethod>
-  protected lineItemAdjustmentService_: ModulesSdkTypes.IMedusaInternalService<LineItemAdjustment>
-  protected lineItemTaxLineService_: ModulesSdkTypes.IMedusaInternalService<LineItemTaxLine>
-  protected shippingMethodTaxLineService_: ModulesSdkTypes.IMedusaInternalService<ShippingMethodTaxLine>
+  protected cartService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof Cart>
+  >
+  protected addressService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof Address>
+  >
+  protected lineItemService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof LineItem>
+  >
+  protected shippingMethodAdjustmentService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof ShippingMethodAdjustment>
+  >
+  protected shippingMethodService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof ShippingMethod>
+  >
+  protected lineItemAdjustmentService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof LineItemAdjustment>
+  >
+  protected lineItemTaxLineService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof LineItemTaxLine>
+  >
+  protected shippingMethodTaxLineService_: ModulesSdkTypes.IMedusaInternalService<
+    InferEntityType<typeof ShippingMethodTaxLine>
+  >
 
   constructor(
     {
@@ -241,12 +258,14 @@ export default class CartModuleService
     sharedContext?: Context
   ): Promise<CartTypes.CartDTO[]>
 
+  // @ts-expect-error
   async createCarts(
     data: CartTypes.CreateCartDTO,
     sharedContext?: Context
   ): Promise<CartTypes.CartDTO>
 
   @InjectManager()
+  // @ts-expect-error
   async createCarts(
     data: CartTypes.CreateCartDTO[] | CartTypes.CreateCartDTO,
     @MedusaContext() sharedContext: Context = {}
@@ -274,7 +293,7 @@ export default class CartModuleService
     @MedusaContext() sharedContext: Context = {}
   ) {
     const lineItemsToCreate: CreateLineItemDTO[] = []
-    const createdCarts: Cart[] = []
+    const createdCarts: InferEntityType<typeof Cart>[] = []
     for (const { items, ...cart } of data) {
       const [created] = await this.cartService_.create([cart], sharedContext)
 
@@ -303,11 +322,13 @@ export default class CartModuleService
   async updateCarts(
     data: CartTypes.UpdateCartDTO[]
   ): Promise<CartTypes.CartDTO[]>
+  // @ts-expect-error
   async updateCarts(
     cartId: string,
     data: CartTypes.UpdateCartDataDTO,
     sharedContext?: Context
   ): Promise<CartTypes.CartDTO>
+  // @ts-expect-error
   async updateCarts(
     selector: Partial<CartTypes.CartDTO>,
     data: CartTypes.UpdateCartDataDTO,
@@ -315,6 +336,7 @@ export default class CartModuleService
   ): Promise<CartTypes.CartDTO[]>
 
   @InjectManager()
+  // @ts-expect-error
   async updateCarts(
     dataOrIdOrSelector:
       | CartTypes.UpdateCartDTO[]
@@ -376,6 +398,18 @@ export default class CartModuleService
     return result
   }
 
+  @InjectManager()
+  // @ts-expect-error
+  async updateShippingMethods(
+    data: CartTypes.UpdateShippingMethodDTO[],
+    sharedContext?: Context
+  ): Promise<CartTypes.CartShippingMethodDTO[]> {
+    return super.updateShippingMethods(
+      data as unknown as CartTypes.CartShippingMethodDTO[],
+      sharedContext
+    ) as unknown as Promise<CartTypes.CartShippingMethodDTO[]>
+  }
+
   addLineItems(
     data: CartTypes.CreateLineItemForCartDTO
   ): Promise<CartTypes.CartLineItemDTO[]>
@@ -397,7 +431,7 @@ export default class CartModuleService
     data?: CartTypes.CreateLineItemDTO[] | CartTypes.CreateLineItemDTO,
     @MedusaContext() sharedContext: Context = {}
   ): Promise<CartTypes.CartLineItemDTO[]> {
-    let items: LineItem[] = []
+    let items: InferEntityType<typeof LineItem>[] = []
     if (isString(cartIdOrData)) {
       items = await this.addLineItems_(
         cartIdOrData,
@@ -422,7 +456,7 @@ export default class CartModuleService
     cartId: string,
     items: CartTypes.CreateLineItemDTO[],
     @MedusaContext() sharedContext: Context = {}
-  ): Promise<LineItem[]> {
+  ): Promise<InferEntityType<typeof LineItem>[]> {
     const cart = await this.retrieveCart(
       cartId,
       { select: ["id"] },
@@ -443,7 +477,7 @@ export default class CartModuleService
   protected async addLineItemsBulk_(
     data: CreateLineItemDTO[],
     @MedusaContext() sharedContext: Context = {}
-  ): Promise<LineItem[]> {
+  ): Promise<InferEntityType<typeof LineItem>[]> {
     return await this.lineItemService_.create(data, sharedContext)
   }
 
@@ -451,11 +485,13 @@ export default class CartModuleService
   updateLineItems(
     data: CartTypes.UpdateLineItemWithSelectorDTO[]
   ): Promise<CartTypes.CartLineItemDTO[]>
+  // @ts-expect-error
   updateLineItems(
     selector: Partial<CartTypes.CartLineItemDTO>,
     data: CartTypes.UpdateLineItemDTO,
     sharedContext?: Context
   ): Promise<CartTypes.CartLineItemDTO[]>
+  // @ts-expect-error
   updateLineItems(
     lineItemId: string,
     data: Partial<CartTypes.UpdateLineItemDTO>,
@@ -463,6 +499,7 @@ export default class CartModuleService
   ): Promise<CartTypes.CartLineItemDTO>
 
   @InjectManager()
+  // @ts-expect-error
   async updateLineItems(
     lineItemIdOrDataOrSelector:
       | string
@@ -471,7 +508,7 @@ export default class CartModuleService
     data?: CartTypes.UpdateLineItemDTO | Partial<CartTypes.UpdateLineItemDTO>,
     @MedusaContext() sharedContext: Context = {}
   ): Promise<CartTypes.CartLineItemDTO[] | CartTypes.CartLineItemDTO> {
-    let items: LineItem[] = []
+    let items: InferEntityType<typeof LineItem>[] = []
     if (isString(lineItemIdOrDataOrSelector)) {
       const item = await this.updateLineItem_(
         lineItemIdOrDataOrSelector,
@@ -511,7 +548,7 @@ export default class CartModuleService
     lineItemId: string,
     data: Partial<CartTypes.UpdateLineItemDTO>,
     @MedusaContext() sharedContext: Context = {}
-  ): Promise<LineItem> {
+  ): Promise<InferEntityType<typeof LineItem>> {
     const [item] = await this.lineItemService_.update(
       [{ id: lineItemId, ...data }],
       sharedContext
@@ -524,7 +561,7 @@ export default class CartModuleService
   protected async updateLineItemsWithSelector_(
     updates: CartTypes.UpdateLineItemWithSelectorDTO[],
     @MedusaContext() sharedContext: Context = {}
-  ): Promise<LineItem[]> {
+  ): Promise<InferEntityType<typeof LineItem>[]> {
     let toUpdate: UpdateLineItemDTO[] = []
     for (const { selector, data } of updates) {
       const items = await this.listLineItems({ ...selector }, {}, sharedContext)
@@ -545,12 +582,14 @@ export default class CartModuleService
     data: CartTypes.CreateAddressDTO,
     sharedContext?: Context
   ): Promise<CartTypes.CartAddressDTO>
+  // @ts-expect-error
   async createAddresses(
     data: CartTypes.CreateAddressDTO[],
     sharedContext?: Context
   ): Promise<CartTypes.CartAddressDTO[]>
 
   @InjectManager()
+  // @ts-expect-error
   async createAddresses(
     data: CartTypes.CreateAddressDTO[] | CartTypes.CreateAddressDTO,
     @MedusaContext() sharedContext: Context = {}
@@ -582,12 +621,14 @@ export default class CartModuleService
     data: CartTypes.UpdateAddressDTO,
     sharedContext?: Context
   ): Promise<CartTypes.CartAddressDTO>
+  // @ts-expect-error
   async updateAddresses(
     data: CartTypes.UpdateAddressDTO[],
     sharedContext?: Context
   ): Promise<CartTypes.CartAddressDTO[]>
 
   @InjectManager()
+  // @ts-expect-error
   async updateAddresses(
     data: CartTypes.UpdateAddressDTO[] | CartTypes.UpdateAddressDTO,
     @MedusaContext() sharedContext: Context = {}
@@ -639,7 +680,7 @@ export default class CartModuleService
   ): Promise<
     CartTypes.CartShippingMethodDTO[] | CartTypes.CartShippingMethodDTO
   > {
-    let methods: ShippingMethod[]
+    let methods: InferEntityType<typeof ShippingMethod>[]
     if (isString(cartIdOrData)) {
       methods = await this.addShippingMethods_(
         cartIdOrData,
@@ -664,7 +705,7 @@ export default class CartModuleService
     cartId: string,
     data: CartTypes.CreateShippingMethodForSingleCartDTO[],
     @MedusaContext() sharedContext: Context = {}
-  ): Promise<ShippingMethod[]> {
+  ): Promise<InferEntityType<typeof ShippingMethod>[]> {
     const cart = await this.retrieveCart(
       cartId,
       { select: ["id"] },
@@ -685,7 +726,7 @@ export default class CartModuleService
   protected async addShippingMethodsBulk_(
     data: CartTypes.CreateShippingMethodDTO[],
     @MedusaContext() sharedContext: Context = {}
-  ): Promise<ShippingMethod[]> {
+  ): Promise<InferEntityType<typeof ShippingMethod>[]> {
     return await this.shippingMethodService_.create(
       data as unknown as CreateShippingMethodDTO[],
       sharedContext
@@ -713,7 +754,7 @@ export default class CartModuleService
     adjustments?: CartTypes.CreateLineItemAdjustmentDTO[],
     @MedusaContext() sharedContext: Context = {}
   ): Promise<CartTypes.LineItemAdjustmentDTO[]> {
-    let addedAdjustments: LineItemAdjustment[] = []
+    let addedAdjustments: InferEntityType<typeof LineItemAdjustment>[] = []
     if (isString(cartIdOrData)) {
       const cart = await this.retrieveCart(
         cartIdOrData,
@@ -888,7 +929,8 @@ export default class CartModuleService
     | CartTypes.ShippingMethodAdjustmentDTO[]
     | CartTypes.ShippingMethodAdjustmentDTO
   > {
-    let addedAdjustments: ShippingMethodAdjustment[] = []
+    let addedAdjustments: InferEntityType<typeof ShippingMethodAdjustment>[] =
+      []
     if (isString(cartIdOrData)) {
       const cart = await this.retrieveCart(
         cartIdOrData,
@@ -961,7 +1003,7 @@ export default class CartModuleService
       | CartTypes.CreateLineItemTaxLineDTO,
     @MedusaContext() sharedContext: Context = {}
   ): Promise<CartTypes.LineItemTaxLineDTO[] | CartTypes.LineItemTaxLineDTO> {
-    let addedTaxLines: LineItemTaxLine[]
+    let addedTaxLines: InferEntityType<typeof LineItemTaxLine>[]
     if (isString(cartIdOrData)) {
       // existence check
       await this.retrieveCart(cartIdOrData, { select: ["id"] }, sharedContext)
@@ -1077,7 +1119,7 @@ export default class CartModuleService
   ): Promise<
     CartTypes.ShippingMethodTaxLineDTO[] | CartTypes.ShippingMethodTaxLineDTO
   > {
-    let addedTaxLines: ShippingMethodTaxLine[]
+    let addedTaxLines: InferEntityType<typeof ShippingMethodTaxLine>[]
     if (isString(cartIdOrData)) {
       // existence check
       await this.retrieveCart(cartIdOrData, { select: ["id"] }, sharedContext)

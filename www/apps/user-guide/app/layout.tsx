@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, Roboto_Mono } from "next/font/google"
 import Providers from "@/providers"
-import "../css/globals.css"
+import "./globals.css"
 import { BareboneLayout, TightLayout } from "docs-ui"
 import { config } from "@/config"
 import clsx from "clsx"
@@ -59,7 +59,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <BareboneLayout htmlClassName={clsx(inter.variable, robotoMono.variable)}>
+    <BareboneLayout
+      htmlClassName={clsx(inter.variable, robotoMono.variable)}
+      gaId={process.env.NEXT_PUBLIC_GA_ID}
+    >
       <TightLayout
         sidebarProps={{
           expandItems: true,

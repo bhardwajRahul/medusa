@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { AddressPayload } from "../../utils/common-validators"
 import {
   createFindParams,
   createOperatorMap,
@@ -74,6 +75,7 @@ export type AdminOrderCreateFulfillmentType = z.infer<
 export const OrderCreateFulfillment = z.object({
   items: z.array(Item),
   location_id: z.string().nullish(),
+  shipping_option_id: z.string().optional(),
   no_notification: z.boolean().optional(),
   metadata: z.record(z.unknown()).nullish(),
 })
@@ -136,3 +138,11 @@ export type AdminCancelOrderTransferRequestType = z.infer<
   typeof AdminCancelOrderTransferRequest
 >
 export const AdminCancelOrderTransferRequest = z.object({})
+
+export type AdminUpdateOrderType = z.infer<typeof AdminUpdateOrder>
+export const AdminUpdateOrder = z.object({
+  email: z.string().optional(),
+  shipping_address: AddressPayload.optional(),
+  billing_address: AddressPayload.optional(),
+  metadata: z.record(z.unknown()).nullish(),
+})

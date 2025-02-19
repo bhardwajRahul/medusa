@@ -2,9 +2,9 @@ import {
   BaseFilterable,
   Context,
   FilterQuery,
-  FilterQuery as InternalFilterQuery,
   FindConfig,
   InferEntityType,
+  FilterQuery as InternalFilterQuery,
   ModulesSdkTypes,
   PerformedActions,
   UpsertWithReplaceConfig,
@@ -17,8 +17,9 @@ import {
   isString,
   lowerCaseFirst,
   MedusaError,
+  mergeMetadata,
 } from "../common"
-import { FreeTextSearchFilterKey } from "../dal"
+import { FreeTextSearchFilterKeyPrefix } from "../dal"
 import { DmlEntity, toMikroORMEntity } from "../dml"
 import { buildQuery } from "./build-query"
 import {
@@ -67,7 +68,7 @@ export function MedusaInternalService<
     ): void {
       if (isDefined(filters?.q)) {
         config.filters ??= {}
-        config.filters[FreeTextSearchFilterKey] = {
+        config.filters[FreeTextSearchFilterKeyPrefix + model.name] = {
           value: filters.q,
           fromEntity: model.name,
         }
@@ -273,6 +274,7 @@ export function MedusaInternalService<
             {},
             sharedContext
           )
+
           // Create a pair of entity and data to update
           entitiesToUpdate.forEach((entity) => {
             toUpdateData.push({
@@ -344,6 +346,20 @@ export function MedusaInternalService<
           )
         }
       }
+
+      if (!toUpdateData.length) {
+        return []
+      }
+
+      // Manage metadata if needed
+      toUpdateData.forEach(({ entity, update }) => {
+        if (isPresent(update.metadata)) {
+          entity.metadata = update.metadata = mergeMetadata(
+            entity.metadata ?? {},
+            update.metadata
+          )
+        }
+      })
 
       return await this[propertyRepositoryName].update(
         toUpdateData,
@@ -456,6 +472,10 @@ export function MedusaInternalService<
           })*/
           return criteria
         })
+      }
+
+      if (!deleteCriteria.$or.length) {
+        return
       }
 
       await this[propertyRepositoryName].delete(deleteCriteria, sharedContext)
